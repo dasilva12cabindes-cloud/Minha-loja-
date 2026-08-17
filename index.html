@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CABINDA BUSINESS</title>
+<style>
+body{margin:0;font-family:Arial,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%)}
+header{background:#fff;padding:15px;text-align:center;position:sticky;top:0;z-index:10}
+h1{color:#667eea;margin:0}
+.menu{margin-top:10px}
+.btn-menu{background:#667eea;color:#fff;padding:8px 15px;border:none;border-radius:20px;margin:5px;cursor:pointer;font-weight:bold}
+#carrinho-btn{position:fixed;bottom:20px;right:20px;background:#25D366;color:#fff;padding:15px 20px;border-radius:50px;border:none;font-size:16px;font-weight:bold;box-shadow:0 4px 10px rgba(0,0,0,0.3)}
+.container{max-width:1000px;margin:20px auto;padding:10px}
+.produtos{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px}
+.card{background:#fff;border-radius:15px;padding:15px;text-align:center;box-shadow:0 4px 8px rgba(0,0,0,0.1)}
+.card img{width:100%;height:200px;object-fit:cover;border-radius:10px}
+.preco{color:#25D366;font-size:20px;font-weight:bold}
+.btn-add{background:#667eea;color:#fff;padding:10px 15px;border:none;border-radius:20px;cursor:pointer;font-weight:bold}
+/* POPUP */
+.popup{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:20;overflow-y:auto}
+.popup-content{background:#fff;margin:5% auto;padding:20px;border-radius:15px;width:90%;max-width:500px}
+.item-carrinho{display:flex;justify-content:space-between;align-items:center;margin:10px 0;padding:10px;border-bottom:1px solid #eee}
+.btn-remover{background:red;color:#fff;border:none;border-radius:50%;width:25px;height:25px;cursor:pointer}
+.btn-finalizar{background:#25D366;color:#fff;padding:12px;width:100%;border:none;border-radius:10px;font-weight:bold;margin-top:10px}
+.politicas h3{color:#667eea;margin-top:15px}
+</style>
+</head>
+<body>
+<header>
+<h1>CABINDA BUSINESS</h1>
+<img src="https://i.imgur.com/PLACEHOLDER.jpg" alt="Banner CABINDA BUSINESS" style="width:100%;border-radius:15px;margin-top:10px">
+<p><b>Entrega somente em Cabinda</b></p>
+<div class="menu">
+  <button class="btn-menu" onclick="abrirPoliticas()">Políticas</button>
+  <button class="btn-menu" onclick="abrirContato()">Contato</button>
+</div>
+</header>
+
+<div class="container">
+<div class="produtos">
+  
+  <!-- PRODUTO 1: RELÓGIO -->
+  <div class="card">
+    <img src="https://via.placeholder.com/300" alt="Relógio">
+    <h3>Relógio</h3>
+    <p class="preco">AOA 30.000</p>
+    <button class="btn-add" onclick="addCarrinho('Relógio', 30000)">Adicionar</button>
+  </div>
+
+  <!-- PRODUTO 2: ROUPA -->
+  <div class="card">
+    <img src="https://via.placeholder.com/300" alt="Roupa">
+    <h3>Camisa Social</h3>
+    <p class="preco">AOA 15.000</p>
+    <button class="btn-add" onclick="addCarrinho('Camisa Social', 15000)">Adicionar</button>
+  </div>
+
+  <!-- PRODUTO 3: SAPATO -->
+  <div class="card">
+    <img src="https://via.placeholder.com/300" alt="Sapato">
+    <h3>Tênis Nike</h3>
+    <p class="preco">AOA 45.000</p>
+    <button class="btn-add" onclick="addCarrinho('Tênis Nike', 45000)">Adicionar</button>
+  </div>
+
+  <!-- PRODUTO 4: ELETRÔNICO -->
+  <div class="card">
+    <img src="https://via.placeholder.com/300" alt="Eletrônico">
+    <h3>Auricular Bluetooth</h3>
+    <p class="preco">AOA 20.000</p>
+    <button class="btn-add" onclick="addCarrinho('Auricular Bluetooth', 20000)">Adicionar</button>
+  </div>
+
+</div>
+</div>
+
+<button id="carrinho-btn" onclick="abrirCarrinho()">Ver Carrinho (0)</button>
+
+<!-- POPUP CARRINHO -->
+<div id="popupCarrinho" class="popup">
+  <div class="popup-content">
+    <h2>Seu Carrinho</h2>
+    <div id="listaCarrinho"></div>
+    <h3 id="totalCarrinho">Total: AOA 0</h3>
+    <button class="btn-finalizar" onclick="enviarWhatsApp()">Finalizar no WhatsApp</button>
+    <button onclick="fecharCarrinho()" style="width:100%;margin-top:10px;padding:10px;border:1px solid #ccc;border-radius:10px">Continuar Comprando</button>
+  </div>
+</div>
+
+<!-- POPUP POLÍTICAS -->
+<div id="popupPoliticas" class="popup">
+  <div class="popup-content politicas">
+    <h2>Políticas da Loja</h2>
+    <h3>📦 Entrega</h3>
+    <p>Entrega somente em Cabinda. Taxa a combinar. Prazo: 24h a 48h.</p>
+    <h3>💰 Pagamento</h3>
+    <p>Transferência, Multicaixa e Dinheiro na entrega.</p>
+    <h3>🔄 Trocas</h3>
+    <p>7 dias para troca se tiver defeito de fábrica.</p>
+    <button onclick="fecharPoliticas()" style="width:100%;margin-top:15px;padding:12px;background:#667eea;color:#fff;border:none;border-radius:10px">Fechar</button>
+  </div>
+</div>
+
+<script>
+let carrinho = [];
+function addCarrinho(nome, preco){carrinho.push({nome, preco});atualizarCarrinho();alert(nome + ' adicionado!');}
+function removerItem(index){carrinho.splice(index, 1);atualizarCarrinho();}
+function atualizarCarrinho(){let total = carrinho.reduce((soma, item) => soma + item.preco, 0);document.getElementById('carrinho-btn').innerText = `Ver Carrinho (${carrinho.length})`;let lista = document.getElementById('listaCarrinho');lista.innerHTML = '';carrinho.forEach((item, index) => {lista.innerHTML += `<div class="item-carrinho"><span>${item.nome} - AOA ${item.preco.toLocaleString()}</span><button class="btn-remover" onclick="removerItem(${index})">X</button></div>`;});document.getElementById('totalCarrinho').innerText = `Total: AOA ${total.toLocaleString()}`;}
+function abrirCarrinho(){if(carrinho.length == 0){ alert('Carrinho vazio!'); return; }document.getElementById('popupCarrinho').style.display = 'block';}
+function fecharCarrinho(){document.getElementById('popupCarrinho').style.display = 'none';}
+function abrirPoliticas(){document.getElementById('popupPoliticas').style.display = 'block';}
+function fecharPoliticas(){document.getElementById('popupPoliticas').style.display = 'none';}
+function abrirContato(){window.open('https://wa.me/244972370499?text=Olá CABINDA BUSINESS! Tenho uma dúvida.');}
+function enviarWhatsApp(){let mensagem = 'Olá CABINDA BUSINESS! Quero pedir:%0A%0A';carrinho.forEach(item => {mensagem += `- ${item.nome}: AOA ${item.preco.toLocaleString()}%0A`;});let total = carrinho.reduce((soma, item) => soma + item.preco, 0);mensagem += `%0A Total: AOA ${total.toLocaleString()}`;window.open(`https://wa.me/244972370499?text=${mensagem}`);carrinho = [];atualizarCarrinho();fecharCarrinho();}
+</script>
+</body>
+</html>
