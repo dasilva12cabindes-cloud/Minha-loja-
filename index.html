@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minha Loja AO</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
+body{background:#f5f5f5;color:#333}
+header{background:linear-gradient(135deg,#004aad,#ff8c00);color:white;padding:15px;text-align:center;position:sticky;top:0;z-index:10}
+header h1{font-size:22px}
+nav{display:flex;justify-content:center;gap:20px;margin-top:10px}
+nav button{background:white;color:#004aad;border:none;padding:8px 15px;border-radius:20px;cursor:pointer;font-weight:bold}
+.container{max-width:1100px;margin:20px auto;padding:15px}
+.produtos{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px}
+.card{background:white;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.1);padding:15px;text-align:center}
+.card img{width:100%;height:200px;object-fit:cover;border-radius:8px}
+.card h3{margin:10px 0;color:#004aad}
+.preco{font-size:20px;font-weight:bold;color:#ff8c00}
+.btn{background:#25D366;color:white;border:none;padding:10px;border-radius:8px;cursor:pointer;width:100%;margin-top:10px;font-weight:bold}
+.btn-cart{background:#004aad}
+.carrinho, .admin, .cliente{display:none}
+table{width:100%;background:white;border-radius:8px;overflow:hidden}
+td,th{padding:10px;border-bottom:1px solid #ddd;text-align:left}
+input,textarea{width:100%;padding:8px;margin:5px 0;border:1px solid #ccc;border-radius:5px}
+.login-box{max-width:400px;margin:50px auto;background:white;padding:20px;border-radius:10px}
+footer{text-align:center;padding:20px;background:#333;color:white;margin-top:30px}
+.whatsapp{position:fixed;bottom:20px;right:20px;background:#25D366;color:white;border-radius:50%;width:60px;height:60px;display:flex;align-items:center;justify-content:center;font-size:30px;text-decoration:none}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🛒 MINHA LOJA AO</h1>
+  <nav>
+    <button onclick="mostrar('home')">Loja</button>
+    <button onclick="mostrar('carrinho')">Carrinho (<span id="qtd">0</span>)</button>
+    <button onclick="mostrar('cliente')">Meus Pedidos</button>
+    <button onclick="mostrar('admin')">Admin</button>
+  </nav>
+</header>
+
+<div class="container">
+  <!-- LOJA -->
+  <div id="home">
+    <h2>Produtos em Destaque</h2>
+    <div class="produtos" id="listaProdutos"></div>
+  </div>
+
+  <!-- CARRINHO -->
+  <div id="carrinho" class="carrinho">
+    <h2>Seu Carrinho</h2>
+    <table id="tabelaCarrinho"></table>
+    <h3>Total: <span id="total">0</span> KZ</h3>
+    <button class="btn" onclick="finalizar()">Finalizar no WhatsApp</button>
+  </div>
+
+  <!-- CLIENTE -->
+  <div id="cliente" class="cliente">
+    <h2>Meus Pedidos</h2>
+    <div id="meusPedidos">Nenhum pedido ainda.</div>
+  </div>
+
+  <!-- ADMIN -->
+  <div id="admin" class="admin">
+    <div id="loginAdmin" class="login-box">
+      <h2>Login Admin</h2>
+      <input type="password" id="senha" placeholder="Senha: admin123">
+      <button class="btn btn-cart" onclick="logar()">Entrar</button>
+    </div>
+    <div id="painelAdmin" style="display:none">
+      <h2>Painel do Administrador</h2>
+      <h3>Adicionar Produto</h3>
+      <input id="nomeProd" placeholder="Nome do Produto">
+      <input id="precoProd" type="number" placeholder="Preço em KZ">
+      <input id="imgProd" placeholder="Link da Imagem">
+      <button class="btn btn-cart" onclick="addProduto()">Salvar Produto</button>
+      <h3 style="margin-top:20px">Produtos Cadastrados</h3>
+      <div id="listaAdmin"></div>
+      <h3 style="margin-top:20px">Pedidos Recebidos</h3>
+      <div id="listaPedidos"></div>
+    </div>
+  </div>
+</div>
+
+<a href="https://wa.me/2449XXXXXXXX" target="_blank" class="whatsapp">💬</a>
+
+<footer>
+  <p>© 2026 MINHA LOJA AO - Pagamento: Transferência BAI/BFA ou na Entrega</p>
+</footer>
+
+<script>
+let produtos = JSON.parse(localStorage.getItem('produtos')) || [
+  {id:1,nome:"T-shirt Angola",preco:8000,img:"https://via.placeholder.com/300"},
+  {id:2,nome:"Tênis Urbano",preco:25000,img:"https://via.placeholder.com/300"},
+  {id:3,nome:"Mochila Escolar",preco:12000,img:"https://via.placeholder.com/300"}
+];
+let carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
+let pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
+let logado = false;
+let numeroWhats = "2449XXXXXXXX"; // TROCA PELO TEU NUMERO
+
+function mostrar(id){
+  document.querySelectorAll('#home,.carrinho,.cliente,.admin').forEach(e=>e.style.display='none');
+  document.getElementById(id).style.display='block';
+  if(id=='home') carregarProdutos();
+  if(id=='carrinho') carregarCarrinho();
+  if(id=='cliente') carregarPedidos();
+  if(id=='admin') carregarAdmin();
+}
+
+function carregarProdutos(){
+  let html='';
+  produtos.forEach(p=>{
+    html+=`<div class="card">
+      <img src="${p.img}">
+      <h3>${p.nome}</h3>
+      <p class="preco">${p.preco.toLocaleString()} KZ</p>
+      <button class="btn" onclick="addCarrinho(${p.id})">Adicionar ao Carrinho</button>
+      <a class="btn" style="background:#25D366;display:block;text-decoration:none" href="https://wa.me/${numeroWhats}?text=Olá, quero comprar: ${p.nome} por ${p.preco} KZ" target="_blank">Comprar no WhatsApp</a>
+    </div>`
+  });
+  document.getElementById('listaProdutos').innerHTML=html;
+}
+
+function addCarrinho(id){
+  let prod = produtos.find(p=>p.id==id);
+  carrinho.push(prod);
+  localStorage.setItem('carrinho',JSON.stringify(carrinho));
+  document.getElementById('qtd').innerText=carrinho.length;
+  alert(prod.nome+" adicionado!");
+}
+
+function carregarCarrinho(){
+  let html='<tr><th>Produto</th><th>Preço</th></tr>';
+  let total=0;
+  carrinho.forEach(p=>{html+=`<tr><td>${p.nome}</td><td>${p.preco} KZ</td></tr>`;total+=p.preco});
+  document.getElementById('tabelaCarrinho').innerHTML=html;
+  document.getElementById('total').innerText=total.toLocaleString();
+  document.getElementById('qtd').innerText=carrinho.length;
+}
+
+function finalizar(){
+  if(carrinho.length==0){alert("Carrinho vazio");return}
+  let msg="Olá, quero fazer este pedido:%0A";
+  carrinho.forEach(p=>msg+=`- ${p.nome}: ${p.preco} KZ%0A`);
+  let total = carrinho.reduce((a,b)=>a+b.preco,0);
+  msg+=`Total: ${total} KZ%0A Forma de pagamento: Transferência/Pagamento na Entrega`;
+  window.open(`https://wa.me/${numeroWhats}?text=${msg}`,'_blank');
+  pedidos.push({data:new Date().toLocaleString(),itens:carrinho,total:total});
+  localStorage.setItem('pedidos',JSON.stringify(pedidos));
+  carrinho=[];localStorage.setItem('carrinho',JSON.stringify(carrinho));
+}
+
+function carregarPedidos(){
+  if(pedidos.length==0){document.getElementById('meusPedidos').innerHTML="Nenhum pedido ainda.";return}
+  let html='';
+  pedidos.forEach(p=>{html+=`<p><b>${p.data}</b> - Total: ${p.total} KZ</p>`});
+  document.getElementById('meusPedidos').innerHTML=html;
+}
+
+function logar(){
+  if(document.getElementById('senha').value=='admin123'){
+    logado=true;document.getElementById('loginAdmin').style.display='none';
+    document.getElementById('painelAdmin').style.display='block';carregarAdmin();
+  }else alert("Senha errada");
+}
+
+function carregarAdmin(){
+  let html='';
+  produtos.forEach(p=>{html+=`<p>${p.nome} - ${p.preco} KZ <button onclick="delProd(${p.id})">Apagar</button></p>`});
+  document.getElementById('listaAdmin').innerHTML=html;
+  let ped='';
+  pedidos.forEach(p=>{ped+=`<p>${p.data} - ${p.total} KZ</p>`});
+  document.getElementById('listaPedidos').innerHTML=ped;
+}
+
+function addProduto(){
+  let nome=document.getElementById('nomeProd').value;
+  let preco=parseInt(document.getElementById('precoProd').value);
+  let img=document.getElementById('imgProd').value;
+  produtos.push({id:Date.now(),nome,preco,img});
+  localStorage.setItem('produtos',JSON.stringify(produtos));
+  alert("Produto adicionado!");
+}
+
+function delProd(id){
+  produtos=produtos.filter(p=>p.id!=id);
+  localStorage.setItem('produtos',JSON.stringify(produtos));
+  carregarAdmin();
+}
+
+mostrar('home');
+</script>
+</body>
+</html>
